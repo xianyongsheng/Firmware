@@ -182,9 +182,7 @@ private:
 
 	DataValidator	_airspeed_validator;		/**< data validator to monitor airspeed */
 
-	battery_status_s _battery_status[BOARD_NUMBER_BRICKS] {};	/**< battery status */
 	differential_pressure_s _diff_pres{};
-	airspeed_s _airspeed{};
 
 	Battery		_battery[BOARD_NUMBER_BRICKS];			/**< Helper lib to publish battery_status topic. */
 
@@ -261,30 +259,6 @@ Sensors::parameters_update()
 	_rc_update.update_rc_functions();
 	_voted_sensors_update.parameters_update();
 
-	/* update barometer qnh setting */
-	DevHandle h_baro;
-	DevMgr::getHandle(BARO0_DEVICE_PATH, h_baro);
-
-#if !defined(__PX4_QURT) && !defined(__PX4_POSIX_RPI) && !defined(__PX4_POSIX_BEBOP) && !defined(__PX4_POSIX_OCPOC)
-
-	// TODO: this needs fixing for QURT and Raspberry Pi
-	if (!h_baro.isValid()) {
-		if (!_hil_enabled) { // in HIL we don't have a baro
-			PX4_ERR("no barometer found on %s (%d)", BARO0_DEVICE_PATH, h_baro.getError());
-			ret = PX4_ERROR;
-		}
-
-	} else {
-		int baroret = h_baro.ioctl(BAROIOCSMSLPRESSURE, (unsigned long)(_parameters.baro_qnh * 100));
-
-		if (baroret) {
-			PX4_ERR("qnh for baro could not be set");
-			ret = PX4_ERROR;
-		}
-	}
-
-#endif
-
 	return ret;
 }
 
@@ -314,15 +288,16 @@ Sensors::diff_pres_poll(struct sensor_combined_s &raw)
 		float air_temperature_celsius = (_diff_pres.temperature > -300.0f) ? _diff_pres.temperature :
 						(raw.baro_temp_celcius - PCB_TEMP_ESTIMATE_DEG);
 
-		_airspeed.timestamp = _diff_pres.timestamp;
+		airspeed_s airspeed;
+		airspeed.timestamp = _diff_pres.timestamp;
 
 		/* push data into validator */
 		float airspeed_input[3] = { _diff_pres.differential_pressure_raw_pa, _diff_pres.temperature, 0.0f };
 
-		_airspeed_validator.put(_airspeed.timestamp, airspeed_input, _diff_pres.error_count,
+		_airspeed_validator.put(airspeed.timestamp, airspeed_input, _diff_pres.error_count,
 					ORB_PRIO_HIGH);
 
-		_airspeed.confidence = _airspeed_validator.confidence(hrt_absolute_time());
+		airspeed.confidence = _airspeed_validator.confidence(hrt_absolute_time());
 
 		enum AIRSPEED_SENSOR_MODEL smodel;
 
@@ -344,24 +319,23 @@ Sensors::diff_pres_poll(struct sensor_combined_s &raw)
 		}
 
 		/* don't risk to feed negative airspeed into the system */
-		_airspeed.indicated_airspeed_m_s = math::max(0.0f,
-						   calc_indicated_airspeed_corrected((enum AIRSPEED_COMPENSATION_MODEL)_parameters.air_cmodel,
-								   smodel, _parameters.air_tube_length, _parameters.air_tube_diameter_mm,
-								   _diff_pres.differential_pressure_filtered_pa, _voted_sensors_update.baro_pressure(),
-								   air_temperature_celsius));
+		airspeed.indicated_airspeed_m_s = math::max(0.0f,
+						  calc_indicated_airspeed_corrected((enum AIRSPEED_COMPENSATION_MODEL)_parameters.air_cmodel,
+								  smodel, _parameters.air_tube_length, _parameters.air_tube_diameter_mm,
+								  _diff_pres.differential_pressure_filtered_pa, raw.baro_pressure_pa,
+								  air_temperature_celsius));
 
-		_airspeed.true_airspeed_m_s = math::max(0.0f,
-							calc_true_airspeed_from_indicated(_airspeed.indicated_airspeed_m_s,
-									_voted_sensors_update.baro_pressure(), air_temperature_celsius));
+		airspeed.true_airspeed_m_s = math::max(0.0f,
+						       calc_true_airspeed_from_indicated(airspeed.indicated_airspeed_m_s, raw.baro_pressure_pa, air_temperature_celsius));
 
-		_airspeed.true_airspeed_unfiltered_m_s = math::max(0.0f,
-				calc_true_airspeed(_diff_pres.differential_pressure_raw_pa + _voted_sensors_update.baro_pressure(),
-						   _voted_sensors_update.baro_pressure(), air_temperature_celsius));
+		airspeed.true_airspeed_unfiltered_m_s = math::max(0.0f,
+							calc_true_airspeed(_diff_pres.differential_pressure_raw_pa + raw.baro_pressure_pa, raw.baro_pressure_pa,
+									air_temperature_celsius));
 
-		_airspeed.air_temperature_celsius = air_temperature_celsius;
+		airspeed.air_temperature_celsius = air_temperature_celsius;
 
 		int instance;
-		orb_publish_auto(ORB_ID(airspeed), &_airspeed_pub, &_airspeed, &instance, ORB_PRIO_DEFAULT);
+		orb_publish_auto(ORB_ID(airspeed), &_airspeed_pub, &airspeed, &instance, ORB_PRIO_DEFAULT);
 	}
 }
 
@@ -558,12 +532,13 @@ Sensors::adc_poll(struct sensor_combined_s &raw)
 					actuator_controls_s ctrl;
 					orb_copy(ORB_ID(actuator_controls_0), _actuator_ctrl_0_sub, &ctrl);
 
+					battery_status_s battery_status = {};
 					_battery[b].updateBatteryStatus(t, bat_voltage_v[b], bat_current_a[b],
 									connected, selected_source == b, b,
 									ctrl.control[actuator_controls_s::INDEX_THROTTLE],
-									_armed,  &_battery_status[b]);
+									_armed,  &battery_status);
 					int instance;
-					orb_publish_auto(ORB_ID(battery_status), &_battery_pub[b], &_battery_status[b], &instance, ORB_PRIO_DEFAULT);
+					orb_publish_auto(ORB_ID(battery_status), &_battery_pub[b], &battery_status, &instance, ORB_PRIO_DEFAULT);
 				}
 			}
 
@@ -605,10 +580,6 @@ Sensors::run()
 
 	_actuator_ctrl_0_sub = orb_subscribe(ORB_ID(actuator_controls_0));
 
-	for (int b = 0; b < BOARD_NUMBER_BRICKS; b++) {
-		_battery[b].reset(&_battery_status[b]);
-	}
-
 	/* get a set of initial values */
 	_voted_sensors_update.sensors_poll(raw);
 
@@ -621,7 +592,9 @@ Sensors::run()
 
 	/* advertise the sensor_preflight topic and make the initial publication */
 	preflt.accel_inconsistency_m_s_s = 0.0f;
+
 	preflt.gyro_inconsistency_rad_s = 0.0f;
+
 	preflt.mag_inconsistency_ga = 0.0f;
 
 	_sensor_preflight = orb_advertise(ORB_ID(sensor_preflight), &preflt);
