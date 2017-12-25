@@ -10,17 +10,17 @@ set(config_module_list
 	#
 	drivers/airspeed
 	drivers/blinkm
-	drivers/bma180
-	drivers/bmi055
-	drivers/bmi160
-	drivers/bmm150
-	drivers/bmp280
+	#drivers/bma180
+	#drivers/bmi055
+	#drivers/bmi160
+	#drivers/bmm150
+	#drivers/bmp280
 	drivers/boards
 	drivers/bst
 	drivers/camera_trigger
 	drivers/device
-	drivers/ets_airspeed
-	drivers/frsky_telemetry
+	#drivers/ets_airspeed
+	#drivers/frsky_telemetry
 	drivers/gps
 	drivers/hmc5883
 	drivers/hott
@@ -28,25 +28,25 @@ set(config_module_list
 	drivers/hott/hott_telemetry
 	drivers/iridiumsbd
 	drivers/led
-	drivers/lis3mdl
-	drivers/ll40ls
+	#drivers/lis3mdl
+	#drivers/ll40ls
 	drivers/mb12xx
 	drivers/mkblctrl
 	drivers/mpu6000
 	drivers/mpu9250
-	drivers/ms4525_airspeed
-	drivers/ms5525_airspeed
+	#drivers/ms4525_airspeed
+	#drivers/ms5525_airspeed
 	drivers/ms5611
 	drivers/oreoled
-	drivers/pca9685
+	#drivers/pca9685
 	drivers/pwm_input
 	drivers/pwm_out_sim
 	drivers/px4flow
 	drivers/px4fmu
 	drivers/rgbled
-	drivers/sdp3x_airspeed
-	drivers/sf0x
-	drivers/sf1xx
+	#drivers/sdp3x_airspeed
+	#drivers/sf0x
+	#drivers/sf1xx
 	drivers/snapdragon_rc_pwm
 	drivers/srf02
 	drivers/stm32
