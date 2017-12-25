@@ -28,15 +28,15 @@ set(config_module_list
 	#drivers/ist8310
 	drivers/l3gd20
 	drivers/led
-	drivers/lis3mdl
-	drivers/ll40ls
+	#drivers/lis3mdl
+	#drivers/ll40ls
 	drivers/lsm303d
 	#drivers/mb12xx
 	#drivers/mkblctrl
 	drivers/mpu6000
 	drivers/mpu9250
-	drivers/ms4525_airspeed
-	drivers/ms5525_airspeed
+	#drivers/ms4525_airspeed
+	#drivers/ms5525_airspeed
 	drivers/ms5611
 	#drivers/oreoled
 	#drivers/protocol_splitter
@@ -46,9 +46,9 @@ set(config_module_list
 	drivers/px4fmu
 	drivers/px4io
 	drivers/rgbled
-	drivers/sdp3x_airspeed
-	drivers/sf0x
-	drivers/sf1xx
+	#drivers/sdp3x_airspeed
+	#drivers/sf0x
+	#drivers/sf1xx
 	#drivers/snapdragon_rc_pwm
 	#drivers/srf02
 	drivers/stm32
