@@ -62,8 +62,8 @@
  *   AHB Prescaler                 : 1            (STM32_RCC_CFGR_HPRE)
  *   APB1 Prescaler                : 4            (STM32_RCC_CFGR_PPRE1)
  *   APB2 Prescaler                : 2            (STM32_RCC_CFGR_PPRE2)
- *   HSE Frequency(Hz)             : 24000000     (STM32_BOARD_XTAL)
- *   PLLM                          : 24           (STM32_PLLCFG_PLLM)
+ *   HSE Frequency(Hz)             : 12000000     (STM32_BOARD_XTAL)
+ *   PLLM                          : 12           (STM32_PLLCFG_PLLM)
  *   PLLN                          : 336          (STM32_PLLCFG_PLLN)
  *   PLLP                          : 2            (STM32_PLLCFG_PLLP)
  *   PLLQ                          : 7            (STM32_PLLCFG_PPQ)
@@ -78,11 +78,11 @@
 
 /* HSI - 16 MHz RC factory-trimmed
  * LSI - 32 KHz RC
- * HSE - On-board crystal frequency is 24MHz
+ * HSE - On-board crystal frequency is 12MHz
  * LSE - not installed
  */
 
-#define STM32_BOARD_XTAL        24000000ul
+#define STM32_BOARD_XTAL        12000000ul
 
 #define STM32_HSI_FREQUENCY     16000000ul
 #define STM32_LSI_FREQUENCY     32000
@@ -102,7 +102,7 @@
  *         = 48,000,000
  */
 
-#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(24)
+#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(12)
 #define STM32_PLLCFG_PLLN       RCC_PLLCFG_PLLN(336)
 #define STM32_PLLCFG_PLLP       RCC_PLLCFG_PLLP_2
 #define STM32_PLLCFG_PLLQ       RCC_PLLCFG_PLLQ(7)
