@@ -227,7 +227,7 @@ private:
 	unsigned	_num_failsafe_set;
 	unsigned	_num_disarmed_set;
 	bool		_safety_off;
-	bool		_safety_options;
+	uint8_t		_safety_options;
 	bool		_safety_disabled;
 	orb_advert_t	_to_safety;
 	bool		_oneshot_mode;
