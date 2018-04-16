@@ -74,7 +74,7 @@
 #include <board_config.h>
 
 
-#define SR04_MAX_RANGEFINDERS 6
+#define SR04_MAX_RANGEFINDERS 1
 #define SR04_ID_BASE	 0x10
 
 /* Configuration Constants */
@@ -101,7 +101,7 @@ static const int ERROR = -1;
 class HC_SR04 : public device::CDev
 {
 public:
-	HC_SR04(unsigned sonars = 6);
+    HC_SR04(unsigned sonars = 1);
 	virtual ~HC_SR04();
 
 	virtual int 		init();
@@ -121,34 +121,33 @@ protected:
 private:
 	float				_min_distance;
 	float				_max_distance;
-	work_s				_work;
-	ringbuffer::RingBuffer	*_reports;
-	bool				_sensor_ok;
+    work_s				_work;
+    ringbuffer::RingBuffer	*_reports;
+    bool				_sensor_ok;
 	int					_measure_ticks;
 	bool				_collect_phase;
 	int					_class_instance;
 	int					_orb_class_instance;
 
-	orb_advert_t		_distance_sensor_topic;
+    orb_advert_t		_distance_sensor_topic;
 
-	perf_counter_t		_sample_perf;
-	perf_counter_t		_comms_errors;
-	perf_counter_t		_buffer_overflows;
+    perf_counter_t		_sample_perf;
+    perf_counter_t		_comms_errors;
+    perf_counter_t		_buffer_overflows;
 
 	uint8_t				_cycle_counter;	/* counter in cycle to change i2c adresses */
 	int					_cycling_rate;	/* */
 	uint8_t				_index_counter;	/* temporary sonar i2c address */
 
-	std::vector<float>
-	_latest_sonar_measurements; /* vector to store latest sonar measurements in before writing to report */
-	unsigned 		_sonars;
-	struct GPIOConfig {
-		uint32_t        trig_port;
-		uint32_t        echo_port;
-		uint32_t        alt;
-	};
-	static const GPIOConfig _gpio_tab[];
-	unsigned 		_raising_time;
+    std::vector<float> _latest_sonar_measurements; /* vector to store latest sonar measurements in before writing to report */
+    unsigned 		_sonars;
+    struct GPIOConfig {
+        uint32_t        trig_port;
+        uint32_t        echo_port;
+        uint32_t        alt;
+    };
+    static const GPIOConfig _gpio_tab[];
+    unsigned 		_raising_time;
 	unsigned 		_falling_time;
 	unsigned 		_status;
 	/**
@@ -202,12 +201,7 @@ private:
 };
 
 const HC_SR04::GPIOConfig HC_SR04::_gpio_tab[] = {
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO7_INPUT,       0},
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO8_INPUT,       0},
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO9_INPUT,       0},
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO10_INPUT,       0},
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO11_INPUT,       0},
-	{GPIO_GPIO6_OUTPUT,      GPIO_GPIO12_INPUT,       0}
+    {GPIO_GPIO4_OUTPUT,      GPIO_GPIO5_INPUT,       0},
 };
 
 /*
@@ -220,16 +214,16 @@ HC_SR04::HC_SR04(unsigned sonars) :
 	CDev("HC_SR04", SR04_DEVICE_PATH, 0),
 	_min_distance(SR04_MIN_DISTANCE),
 	_max_distance(SR04_MAX_DISTANCE),
-	_reports(nullptr),
-	_sensor_ok(false),
-	_measure_ticks(0),
+    _reports(nullptr),
+    _sensor_ok(false),
+    _measure_ticks(0),
 	_collect_phase(false),
 	_class_instance(-1),
 	_orb_class_instance(-1),
-	_distance_sensor_topic(nullptr),
-	_sample_perf(perf_alloc(PC_ELAPSED, "hc_sr04_read")),
-	_comms_errors(perf_alloc(PC_COUNT, "hc_sr04_comms_errors")),
-	_buffer_overflows(perf_alloc(PC_COUNT, "hc_sr04_buffer_overflows")),
+    _distance_sensor_topic(nullptr),
+    _sample_perf(perf_alloc(PC_ELAPSED, "hc_sr04_read")),
+    _comms_errors(perf_alloc(PC_COUNT, "hc_sr04_comms_errors")),
+    _buffer_overflows(perf_alloc(PC_COUNT, "hc_sr04_buffer_overflows")),
 	_cycle_counter(0),	/* initialising counter for cycling function to zero */
 	_cycling_rate(0),	/* initialising cycling rate (which can differ depending on one sonar or multiple) */
 	_index_counter(0), 	/* initialising temp sonar i2c address to zero */
@@ -243,7 +237,7 @@ HC_SR04::HC_SR04(unsigned sonars) :
 	_debug_enabled = false;
 
 	/* work_cancel in the dtor will explode if we don't do this... */
-	memset(&_work, 0, sizeof(_work));
+    memset(&_work, 0, sizeof(_work));
 }
 
 HC_SR04::~HC_SR04()
@@ -252,18 +246,18 @@ HC_SR04::~HC_SR04()
 	stop();
 
 	/* free any existing reports */
-	if (_reports != nullptr) {
-		delete _reports;
-	}
+    if (_reports != nullptr) {
+        delete _reports;
+    }
 
 	if (_class_instance != -1) {
 		unregister_class_devname(RANGE_FINDER_BASE_DEVICE_PATH, _class_instance);
 	}
 
 	/* free perf counters */
-	perf_free(_sample_perf);
-	perf_free(_comms_errors);
-	perf_free(_buffer_overflows);
+    perf_free(_sample_perf);
+    perf_free(_comms_errors);
+    perf_free(_buffer_overflows);
 }
 
 int
@@ -277,23 +271,23 @@ HC_SR04::init()
 	}
 
 	/* allocate basic report buffers */
-	_reports = new ringbuffer::RingBuffer(2, sizeof(distance_sensor_s));
+    _reports = new ringbuffer::RingBuffer(2, sizeof(distance_sensor_s));
 
-	if (_reports == nullptr) {
-		return ERROR;
-	}
+    if (_reports == nullptr) {
+        return ERROR;
+    }
 
 	_class_instance = register_class_devname(RANGE_FINDER_BASE_DEVICE_PATH);
 
 	/* get a publish handle on the range finder topic */
 	struct distance_sensor_s ds_report = {};
 
-	_distance_sensor_topic = orb_advertise_multi(ORB_ID(distance_sensor), &ds_report,
-				 &_orb_class_instance, ORB_PRIO_LOW);
+    _distance_sensor_topic = orb_advertise_multi(ORB_ID(distance_sensor), &ds_report,
+                 &_orb_class_instance, ORB_PRIO_LOW);
 
-	if (_distance_sensor_topic == nullptr) {
-		DEVICE_LOG("failed to create distance_sensor object. Did you start uOrb?");
-	}
+    if (_distance_sensor_topic == nullptr) {
+        DEVICE_LOG("failed to create distance_sensor object. Did you start uOrb?");
+    }
 
 	/* init echo port : */
 	for (unsigned i = 0; i <= _sonars; i++) {
@@ -443,10 +437,10 @@ HC_SR04::ioctl(struct file *filp, int cmd, unsigned long arg)
 
 			irqstate_t flags = irqsave();
 
-			if (!_reports->resize(arg)) {
-				irqrestore(flags);
-				return -ENOMEM;
-			}
+            if (!_reports->resize(arg)) {
+                irqrestore(flags);
+                return -ENOMEM;
+            }
 
 			irqrestore(flags);
 
@@ -454,7 +448,7 @@ HC_SR04::ioctl(struct file *filp, int cmd, unsigned long arg)
 		}
 
 	case SENSORIOCGQUEUEDEPTH:
-		return _reports->size();
+        return _reports->size();
 
 	case SENSORIOCRESET:
 		/* XXX implement this */
@@ -499,10 +493,10 @@ HC_SR04::read(struct file *filp, char *buffer, size_t buflen)
 		 * we are careful to avoid racing with them.
 		 */
 		while (count--) {
-			if (_reports->get(rbuf)) {
-				ret += sizeof(*rbuf);
-				rbuf++;
-			}
+            if (_reports->get(rbuf)) {
+                ret += sizeof(*rbuf);
+                rbuf++;
+            }
 		}
 
 		/* if there was no data, warn the caller */
@@ -511,7 +505,7 @@ HC_SR04::read(struct file *filp, char *buffer, size_t buflen)
 
 	/* manual measurement - run one conversion */
 	do {
-		_reports->flush();
+        _reports->flush();
 
 		/* trigger a measurement */
 		if (OK != measure()) {
@@ -529,9 +523,9 @@ HC_SR04::read(struct file *filp, char *buffer, size_t buflen)
 		}
 
 		/* state machine will have generated a report, copy it out */
-		if (_reports->get(rbuf)) {
-			ret = sizeof(*rbuf);
-		}
+        if (_reports->get(rbuf)) {
+            ret = sizeof(*rbuf);
+        }
 
 	} while (0);
 
@@ -561,7 +555,7 @@ int
 HC_SR04::collect()
 {
 	int	ret = -EIO;
-#if 0
+#if 1
 	perf_begin(_sample_perf);
 
 	/* read from the sensor */
@@ -579,46 +573,46 @@ HC_SR04::collect()
 
 	/* this should be fairly close to the end of the measurement, so the best approximation of the time */
 	report.timestamp = hrt_absolute_time();
-	report.error_count = perf_event_count(_comms_errors);
+    //report.error_count = perf_event_count(_comms_errors);
 
 	/* if only one sonar, write it to the original distance parameter so that it's still used as altitude sonar */
 	if (_sonars == 1) {
-		report.distance = si_units;
+        //report.distance = si_units;
 
-		for (unsigned i = 0; i < (SRF02_MAX_RANGEFINDERS); i++) {
-			report.id[i] = 0;
-			report.distance_vector[i] = 0;
+        for (unsigned i = 0; i < (SR04_MAX_RANGEFINDERS); i++) {
+            report.id = 0;
+            report.current_distance = 0;
 		}
 
-		report.id[0] = SR04_ID_BASE;
-		report.distance_vector[0] = si_units; //  将测量值填入向量中，适应test()的要求
-		report.just_updated = 1;
+        report.id = SR04_ID_BASE;
+        report.current_distance = si_units; //  将测量值填入向量中，适应test()的要求
+        //report.just_updated = 1;
 
 	} else {
 		/* for multiple sonars connected */
 
 		_latest_sonar_measurements[_cycle_counter] = si_units;
-		report.just_updated = 0;
+        //report.just_updated = 0;
 
-		for (unsigned i = 0; i < SRF02_MAX_RANGEFINDERS; i++) {
+        for (unsigned i = 0; i < SR04_MAX_RANGEFINDERS; i++) {
 			if (i < _sonars) {
-				report.distance_vector[i] = _latest_sonar_measurements[i];
-				report.id[i] = SR04_ID_BASE + i;
-				report.just_updated++;
+                report.current_distance = _latest_sonar_measurements[i];
+                report.id = SR04_ID_BASE + i;
+                //report.just_updated++;
 
 			} else {
-				report.distance_vector[i] = 0;
-				report.id[i] = 0;
+                report.current_distance = 0;
+                report.id = 0;
 			}
 
 		}
 
-		report.distance =  _latest_sonar_measurements[0]; //
+        //report.distance =  _latest_sonar_measurements[0]; //
 	}
 
-	report.minimum_distance = get_minimum_distance();
-	report.maximum_distance = get_maximum_distance();
-	report.valid = si_units > get_minimum_distance() && si_units < get_maximum_distance() ? 1 : 0;
+    report.min_distance = get_minimum_distance();
+    report.max_distance = get_maximum_distance();
+    //report.valid = si_units > get_minimum_distance() && si_units < get_maximum_distance() ? 1 : 0;
 
 	/* publish it, if we are the primary */
 	if (_distance_sensor_topic != nullptr) {
@@ -646,16 +640,16 @@ HC_SR04::start()
 
 	/* reset the report ring and state machine */
 	_collect_phase = false;
-	_reports->flush();
+    _reports->flush();
 
 	measure();  /* begin measure */
 
 	/* schedule a cycle to start things */
-	work_queue(HPWORK,
+    work_queue(HPWORK,
 		   &_work,
 		   (worker_t)&HC_SR04::cycle_trampoline,
 		   this,
-		   USEC2TICK(_cycling_rate));
+           USEC2TICK(_cycling_rate));
 
 
 	/* notify about state change */
@@ -680,7 +674,7 @@ HC_SR04::start()
 void
 HC_SR04::stop()
 {
-	work_cancel(HPWORK, &_work);
+    work_cancel(HPWORK, &_work);
 }
 
 void
@@ -715,22 +709,22 @@ HC_SR04::cycle()
 	}
 
 
-	work_queue(HPWORK,
+    work_queue(HPWORK,
 		   &_work,
 		   (worker_t)&HC_SR04::cycle_trampoline,
 		   this,
-		   USEC2TICK(_cycling_rate));
+           USEC2TICK(_cycling_rate));
 
 }
 
 void
 HC_SR04::print_info()
 {
-	perf_print_counter(_sample_perf);
-	perf_print_counter(_comms_errors);
-	perf_print_counter(_buffer_overflows);
+    perf_print_counter(_sample_perf);
+    perf_print_counter(_comms_errors);
+    perf_print_counter(_buffer_overflows);
 	printf("poll interval:  %u ticks\n", _measure_ticks);
-	_reports->print_info("report queue");
+    _reports->print_info("report queue");
 }
 
 /**
@@ -823,7 +817,7 @@ void stop()
 void
 test()
 {
-#if 0
+#if 1
 	struct distance_sensor_s report;
 	ssize_t sz;
 	int ret;
@@ -842,8 +836,8 @@ test()
 	}
 
 	warnx("single read");
-	warnx("measurement: %0.2f of sonar %d,id=%d", (double)report.distance_vector[report.just_updated], report.just_updated,
-	      report.id[report.just_updated]);
+    warnx("measurement: %0.2f of sonar %d,id=%d", (double)report.current_distance, 0,
+          report.id);
 	warnx("time:        %lld", report.timestamp);
 
 	/* start the sensor polling at 2Hz */
@@ -852,7 +846,7 @@ test()
 	}
 
 	/* read the sensor 5x and report each value */
-	for (unsigned i = 0; i < 5; i++) {
+    for (unsigned i = 0; i < 50; i++) {
 		struct pollfd fds;
 
 		/* wait for data to be ready */
@@ -874,8 +868,8 @@ test()
 		warnx("periodic read %u", i);
 
 		/* Print the sonar rangefinder report sonar distance vector */
-		for (uint8_t count = 0; count < SRF02_MAX_RANGEFINDERS; count++) {
-			warnx("measurement: %0.3f of sonar %u, id=%d", (double)report.distance_vector[count], count + 1, report.id[count]);
+        for (uint8_t count = 0; count < SR04_MAX_RANGEFINDERS; count++) {
+            warnx("measurement: %0.3f of sonar %u, id=%d", (double)report.current_distance, count + 1, report.id);
 		}
 
 		warnx("time:        %lld", report.timestamp);

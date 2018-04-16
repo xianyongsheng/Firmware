@@ -70,6 +70,17 @@
 __EXPORT void stm32_spiinitialize(void)
 {
 #ifdef CONFIG_STM32_SPI1
+#if PIXRACER_IO == 1
+    stm32_configgpio(GPIO_SPI_CS_OFF_MPU6500_1);
+    stm32_configgpio(GPIO_SPI_CS_OFF_MPU6500_2);
+    stm32_configgpio(GPIO_SPI_CS_MS5611_1);
+    stm32_configgpio(GPIO_SPI_CS_MS5611_2);
+
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU6500_1, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU6500_2, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, 1);
+#else
 	stm32_configgpio(GPIO_SPI_CS_MPU9250);
 	stm32_configgpio(GPIO_SPI_CS_HMC5983);
 	stm32_configgpio(GPIO_SPI_CS_MS5611);
@@ -88,6 +99,7 @@ __EXPORT void stm32_spiinitialize(void)
 	stm32_configgpio(GPIO_DRDY_HMC5983);
 	stm32_configgpio(GPIO_DRDY_ICM_20608_G);
 #endif
+#endif
 
 #ifdef CONFIG_STM32_SPI2
 	stm32_configgpio(GPIO_SPI_CS_FRAM);
@@ -99,7 +111,40 @@ __EXPORT void stm32_spiinitialize(void)
 __EXPORT void stm32_spi1select(FAR struct spi_dev_s *dev, enum spi_dev_e devid, bool selected)
 {
 	/* SPI select is active low, so write !selected to select the device */
+#if PIXRACER_IO == 1
+    switch (devid) {
+    case PX4_SPIDEV_BARO_1:
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_2, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, !selected);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, 1);
+        break;
+    case PX4_SPIDEV_BARO_2:
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_2, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, !selected);
+        break;
 
+    case PX4_SPIDEV_MPU_1:
+        /* Making sure the other peripherals are not selected */
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_1, !selected);
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_2, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, 1);
+        break;
+    case PX4_SPIDEV_MPU_2:
+        /* Making sure the other peripherals are not selected */
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MPU6500_2, !selected);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+        stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, 1);
+        break;
+
+    default:
+        break;
+    }
+#else
 	switch (devid) {
 	case PX4_SPIDEV_ICM:
 		/* Making sure the other peripherals are not selected */
@@ -140,6 +185,7 @@ __EXPORT void stm32_spi1select(FAR struct spi_dev_s *dev, enum spi_dev_e devid, 
 	default:
 		break;
 	}
+#endif
 }
 
 __EXPORT uint8_t stm32_spi1status(FAR struct spi_dev_s *dev, enum spi_dev_e devid)
@@ -152,7 +198,24 @@ __EXPORT uint8_t stm32_spi1status(FAR struct spi_dev_s *dev, enum spi_dev_e devi
 __EXPORT void stm32_spi2select(FAR struct spi_dev_s *dev, enum spi_dev_e devid, bool selected)
 {
 	/* SPI select is active low, so write !selected to select the device */
+#if PIXRACER_IO == 1
+    switch (devid) {
+        case SPIDEV_FLASH:
+            /* Making sure the other peripherals are not selected */
+            stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+            stm32_gpiowrite(GPIO_SPI_CS_FRAM, !selected);
+            break;
 
+        case PX4_SPIDEV_BARO_1:
+            /* Making sure the other peripherals are not selected */
+            stm32_gpiowrite(GPIO_SPI_CS_FRAM, 1);
+            stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, !selected);
+            break;
+
+        default:
+            break;
+        }
+#else
 	switch (devid) {
 	case SPIDEV_FLASH:
 		/* Making sure the other peripherals are not selected */
@@ -168,7 +231,8 @@ __EXPORT void stm32_spi2select(FAR struct spi_dev_s *dev, enum spi_dev_e devid, 
 
 	default:
 		break;
-	}
+    }
+#endif
 }
 
 __EXPORT uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, enum spi_dev_e devid)

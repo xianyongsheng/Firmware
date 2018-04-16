@@ -376,7 +376,12 @@ ADC::update_system_power(void)
 	system_power.usb_connected = stm32_gpioread(GPIO_OTGFS_VBUS);
 
 	// note that the valid pins are active High
+#if PIXRACER_IO == 1
+    system_power.brick_valid   = 1;
+#else
 	system_power.brick_valid   = stm32_gpioread(GPIO_VDD_BRICK_VALID);
+#endif
+
 	system_power.servo_valid   = 1;
 
 	// OC pins are not supported

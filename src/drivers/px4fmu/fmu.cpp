@@ -321,9 +321,13 @@ const PX4FMU::GPIOConfig PX4FMU::_gpio_tab[] = {
 	{GPIO_GPIO3_INPUT,       GPIO_GPIO3_OUTPUT,       0},
 	{GPIO_GPIO4_INPUT,       GPIO_GPIO4_OUTPUT,       0},
 	{GPIO_GPIO5_INPUT,       GPIO_GPIO5_OUTPUT,       0},
-
+#if PIXRACER_IO == 1
+    {0,                      0, 0},
+    {0,   0,                       0},
+#else
 	{0,                      GPIO_VDD_3V3_SENSORS_EN, 0},
 	{GPIO_VDD_BRICK_VALID,   0,                       0},
+#endif
 #endif
 #if defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)
 	{GPIO_GPIO0_INPUT,       GPIO_GPIO0_OUTPUT,       0},
@@ -2503,7 +2507,17 @@ PX4FMU::sensor_reset(int ms)
 	if (ms < 1) {
 		ms = 1;
 	}
+#if PIXRACER_IO == 1
+    stm32_configgpio(GPIO_SPI_CS_OFF_MPU6500_1);
+    stm32_configgpio(GPIO_SPI_CS_OFF_MPU6500_1);
+    stm32_configgpio(GPIO_SPI_CS_OFF_MS5611_1);
+    stm32_configgpio(GPIO_SPI_CS_OFF_MS5611_2);
 
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU6500_1, 0);
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU6500_2, 0);
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MS5611_1, 0);
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MS5611_2, 0);
+#else
 	/* disable SPI bus */
 	stm32_configgpio(GPIO_SPI_CS_OFF_MPU9250);
 	stm32_configgpio(GPIO_SPI_CS_OFF_HMC5983);
@@ -2514,7 +2528,7 @@ PX4FMU::sensor_reset(int ms)
 	stm32_gpiowrite(GPIO_SPI_CS_OFF_HMC5983, 0);
 	stm32_gpiowrite(GPIO_SPI_CS_OFF_MS5611, 0);
 	stm32_gpiowrite(GPIO_SPI_CS_OFF_ICM_20608_G, 0);
-
+#endif
 	stm32_configgpio(GPIO_SPI1_SCK_OFF);
 	stm32_configgpio(GPIO_SPI1_MISO_OFF);
 	stm32_configgpio(GPIO_SPI1_MOSI_OFF);
@@ -2523,6 +2537,7 @@ PX4FMU::sensor_reset(int ms)
 	stm32_gpiowrite(GPIO_SPI1_MISO_OFF, 0);
 	stm32_gpiowrite(GPIO_SPI1_MOSI_OFF, 0);
 
+#if PIXRACER_IO == 0
 	stm32_configgpio(GPIO_DRDY_OFF_MPU9250);
 	stm32_configgpio(GPIO_DRDY_OFF_HMC5983);
 	stm32_configgpio(GPIO_DRDY_OFF_ICM_20608_G);
@@ -2534,21 +2549,34 @@ PX4FMU::sensor_reset(int ms)
 	/* set the sensor rail off */
 	stm32_configgpio(GPIO_VDD_3V3_SENSORS_EN);
 	stm32_gpiowrite(GPIO_VDD_3V3_SENSORS_EN, 0);
-
+#endif
 	/* wait for the sensor rail to reach GND */
 	usleep(ms * 1000);
 	warnx("reset done, %d ms", ms);
 
 	/* re-enable power */
 
+#if PIXRACER_IO == 0
 	/* switch the sensor rail back on */
 	stm32_gpiowrite(GPIO_VDD_3V3_SENSORS_EN, 1);
+#endif
 
 	/* wait a bit before starting SPI, different times didn't influence results */
 	usleep(100);
 
 	/* reconfigure the SPI pins */
 #ifdef CONFIG_STM32_SPI1
+#if PIXRACER_IO == 1
+    stm32_configgpio(GPIO_SPI_CS_MPU6500_1);
+    stm32_configgpio(GPIO_SPI_CS_MPU6500_2);
+    stm32_configgpio(GPIO_SPI_CS_MS5611_1);
+    stm32_configgpio(GPIO_SPI_CS_MS5611_2);
+
+    stm32_gpiowrite(GPIO_SPI_CS_MPU6500_1, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MPU6500_2, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MS5611_1, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MS5611_2, 1);
+#else
 	stm32_configgpio(GPIO_SPI_CS_MPU9250);
 	stm32_configgpio(GPIO_SPI_CS_HMC5983);
 	stm32_configgpio(GPIO_SPI_CS_MS5611);
@@ -2562,7 +2590,7 @@ PX4FMU::sensor_reset(int ms)
 	stm32_gpiowrite(GPIO_SPI_CS_HMC5983, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_MS5611, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_ICM_20608_G, 1);
-
+#endif
 	stm32_configgpio(GPIO_SPI1_SCK);
 	stm32_configgpio(GPIO_SPI1_MISO);
 	stm32_configgpio(GPIO_SPI1_MOSI);
@@ -2759,6 +2787,7 @@ PX4FMU::peripheral_reset(int ms)
 		ms = 10;
 	}
 
+#if PIXRACER_IO == 0
 	/* set the peripheral rails off */
 	stm32_configgpio(GPIO_PERIPH_3V3_EN);
 
@@ -2767,6 +2796,7 @@ PX4FMU::peripheral_reset(int ms)
 	bool last = stm32_gpioread(GPIO_SPEKTRUM_PWR_EN);
 	/* Keep Spektum on to discharge rail*/
 	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, 1);
+#endif
 
 	/* wait for the peripheral rail to reach GND */
 	usleep(ms * 1000);
@@ -2774,9 +2804,11 @@ PX4FMU::peripheral_reset(int ms)
 
 	/* re-enable power */
 
+#if PIXRACER_IO == 0
 	/* switch the peripheral rail back on */
 	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, last);
 	stm32_gpiowrite(GPIO_PERIPH_3V3_EN, 1);
+#endif
 #endif
 #if defined(CONFIG_ARCH_BOARD_MINDPX_V2)
 

@@ -220,16 +220,19 @@ __EXPORT int nsh_archinitialize(void)
 	stm32_configgpio(GPIO_ADC1_IN4);	/* VDD_5V_SENS */
 	stm32_configgpio(GPIO_ADC1_IN11);	/* RSSI analog in */
 
+#if PIXRACER_IO == 0
 	/* configure power supply control/sense pins */
 	stm32_configgpio(GPIO_PERIPH_3V3_EN);
 	stm32_configgpio(GPIO_VDD_BRICK_VALID);
 
-	stm32_configgpio(GPIO_SBUS_INV);
-	stm32_configgpio(GPIO_8266_GPIO0);
-	stm32_configgpio(GPIO_SPEKTRUM_PWR_EN);
-	stm32_configgpio(GPIO_8266_PD);
-	stm32_configgpio(GPIO_8266_RST);
-	stm32_configgpio(GPIO_BTN_SAFETY);
+    stm32_configgpio(GPIO_8266_GPIO0);
+    stm32_configgpio(GPIO_SPEKTRUM_PWR_EN);
+    stm32_configgpio(GPIO_8266_PD);
+    stm32_configgpio(GPIO_8266_RST);
+#endif
+
+    stm32_configgpio(GPIO_SBUS_INV);
+    stm32_configgpio(GPIO_BTN_SAFETY);
 
 #ifdef GPIO_RC_OUT
 	stm32_configgpio(GPIO_RC_OUT);      /* Serial RC output pin */
@@ -292,9 +295,14 @@ __EXPORT int nsh_archinitialize(void)
 	SPI_SETFREQUENCY(spi1, 10000000);
 	SPI_SETBITS(spi1, 8);
 	SPI_SETMODE(spi1, SPIDEV_MODE3);
+#if PIXRACER_IO == 1
+    SPI_SELECT(spi1, PX4_SPIDEV_MPU_1, false);
+    SPI_SELECT(spi1, PX4_SPIDEV_MPU_2, false);
+#else
 	SPI_SELECT(spi1, PX4_SPIDEV_GYRO, false);
 	SPI_SELECT(spi1, PX4_SPIDEV_HMC, false);
 	SPI_SELECT(spi1, PX4_SPIDEV_MPU, false);
+#endif
 	up_udelay(20);
 
 	/* Get the SPI port for the FRAM */
@@ -316,7 +324,12 @@ __EXPORT int nsh_archinitialize(void)
 	SPI_SETBITS(spi2, 8);
 	SPI_SETMODE(spi2, SPIDEV_MODE3);
 	SPI_SELECT(spi2, SPIDEV_FLASH, false);
+#if PIXRACER_IO == 1
+    SPI_SELECT(spi2, PX4_SPIDEV_BARO_1, false);
+    SPI_SELECT(spi2, PX4_SPIDEV_BARO_2, false);
+#else
 	SPI_SELECT(spi2, PX4_SPIDEV_BARO, false);
+#endif
 
 #ifdef CONFIG_MMCSD
 	/* First, get an instance of the SDIO interface */

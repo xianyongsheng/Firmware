@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2015 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2012, 2013 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,16 +30,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-px4_add_module(
-	MODULE drivers__hc_sr04
-	MAIN hc_sr04
-	STACK 1200
-	COMPILE_FLAGS
-		#-Weffc++
-		-Os
-	SRCS
-		hc_sr04.cpp
-	DEPENDS
-		platforms__common
-	)
-# vim: set noet ft=cmake fenc=utf-8 ff=unix : 
+
+#
+# 
+#
+
+MODULE_COMMAND	 = hc_sr04
+
+SRCS		 = hc_sr04.cpp
+
+MODULE_STACKSIZE	= 1200
+
+#EXTRACXXFLAGS	= -Weffc++
+
+MAXOPTIMIZATION	 = -Os
