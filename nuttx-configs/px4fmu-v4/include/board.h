@@ -38,7 +38,7 @@
 #define __ARCH_BOARD_BOARD_H
 
 //#define PIXRACER_BETA_BOARD
-
+#define PIXRACER_IO     1
 /************************************************************************************
  * Included Files
  ************************************************************************************/
@@ -190,8 +190,8 @@
  * is we set aside more DMA channels/streams.
  *
  * SDIO DMA
- *   DMAMAP_SDIO_1 = Channel 4, Stream 3 <- may later be used by SPI DMA
- *   DMAMAP_SDIO_2 = Channel 4, Stream 6
+ *   DMAMAP_SDIO_1 = Channel 4, Stream 3 <- may later be used by SPI DMA
+ *   DMAMAP_SDIO_2 = Channel 4, Stream 6
  */
 
 #define DMAMAP_SDIO DMAMAP_SDIO_2
@@ -263,11 +263,13 @@
 #define GPIO_SPI2_MISO	(GPIO_SPI2_MISO_1|GPIO_SPEED_50MHz)
 #define GPIO_SPI2_MOSI	(GPIO_SPI2_MOSI_1|GPIO_SPEED_50MHz)
 
-#ifdef PIXRACER_BETA_BOARD
-#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_2|GPIO_SPEED_50MHz)
+//#ifdef PIXRACER_BETA_BOARD
+#if PIXRACER_IO == 1
+//#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_2|GPIO_SPEED_50MHz)
 #else
-#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_1|GPIO_SPEED_50MHz)
+//#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_1|GPIO_SPEED_50MHz)
 #endif
+#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_2|GPIO_SPEED_50MHz)
 
 #ifdef CONFIG_STM32_SPI_DMA
 /*

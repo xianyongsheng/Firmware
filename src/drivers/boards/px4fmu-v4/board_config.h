@@ -53,7 +53,7 @@ __BEGIN_DECLS
 #include <stm32.h>
 #include <arch/board/board.h>
 
-#define PIXRACER_IO     0
+#define PIXRACER_IO     1
 
 #define UDID_START		0x1FFF7A10
 
