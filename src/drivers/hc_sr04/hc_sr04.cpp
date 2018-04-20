@@ -579,14 +579,11 @@ HC_SR04::collect()
 	if (_sonars == 1) {
         //report.distance = si_units;
 
-        for (unsigned i = 0; i < (SR04_MAX_RANGEFINDERS); i++) {
-            report.id = 0;
-            report.current_distance = 0;
-		}
-
         report.id = SR04_ID_BASE;
+        report.type = distance_sensor_s::MAV_DISTANCE_SENSOR_ULTRASOUND;
+        report.orientation = 8;
+        report.covariance = 0.0f;
         report.current_distance = si_units; //  将测量值填入向量中，适应test()的要求
-        //report.just_updated = 1;
 
 	} else {
 		/* for multiple sonars connected */
@@ -612,7 +609,6 @@ HC_SR04::collect()
 
     report.min_distance = get_minimum_distance();
     report.max_distance = get_maximum_distance();
-    //report.valid = si_units > get_minimum_distance() && si_units < get_maximum_distance() ? 1 : 0;
 
 	/* publish it, if we are the primary */
 	if (_distance_sensor_topic != nullptr) {
