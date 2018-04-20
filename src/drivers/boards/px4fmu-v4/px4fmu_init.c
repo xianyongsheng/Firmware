@@ -229,6 +229,11 @@ __EXPORT int nsh_archinitialize(void)
     stm32_configgpio(GPIO_SPEKTRUM_PWR_EN);
     stm32_configgpio(GPIO_8266_PD);
     stm32_configgpio(GPIO_8266_RST);
+
+#else
+    stm32_configgpio(PX4_JIARE);
+
+    stm32_gpiowrite(PX4_JIARE,0);
 #endif
 
     stm32_configgpio(GPIO_SBUS_INV);
