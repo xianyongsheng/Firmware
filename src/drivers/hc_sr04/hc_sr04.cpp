@@ -201,7 +201,7 @@ private:
 };
 
 const HC_SR04::GPIOConfig HC_SR04::_gpio_tab[] = {
-    {GPIO_GPIO4_OUTPUT,      GPIO_GPIO5_INPUT,       0},
+    {GPIO_TRIG_OUTPUT,      GPIO_ECHO_INPUT,       0},
 };
 
 /*
