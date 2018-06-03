@@ -190,8 +190,8 @@
  * is we set aside more DMA channels/streams.
  *
  * SDIO DMA
- *   DMAMAP_SDIO_1 = Channel 4, Stream 3 <- may later be used by SPI DMA
- *   DMAMAP_SDIO_2 = Channel 4, Stream 6
+ *   DMAMAP_SDIO_1 = Channel 4, Stream 3 <- may later be used by SPI DMA
+ *   DMAMAP_SDIO_2 = Channel 4, Stream 6
  */
 
 #define DMAMAP_SDIO DMAMAP_SDIO_2
@@ -255,19 +255,14 @@
  *
  * There are sensors on SPI1, and SPI2 is connected to the FRAM.
  */
-#define GPIO_SPI1_MISO	(GPIO_SPI1_MISO_1|GPIO_SPEED_50MHz)
-#define GPIO_SPI1_MOSI	(GPIO_SPI1_MOSI_1|GPIO_SPEED_50MHz)
-#define GPIO_SPI1_SCK	(GPIO_SPI1_SCK_1|GPIO_SPEED_50MHz)
+#define GPIO_SPI3_MISO	(GPIO_SPI3_MISO_1|GPIO_SPEED_50MHz)
+#define GPIO_SPI3_MOSI	(GPIO_SPI3_MOSI_1|GPIO_SPEED_50MHz)
+#define GPIO_SPI3_SCK	(GPIO_SPI3_SCK_1|GPIO_SPEED_50MHz)
 
 
 #define GPIO_SPI2_MISO	(GPIO_SPI2_MISO_1|GPIO_SPEED_50MHz)
-#define GPIO_SPI2_MOSI	(GPIO_SPI2_MOSI_1|GPIO_SPEED_50MHz)
-
-#ifdef PIXRACER_BETA_BOARD
-#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_2|GPIO_SPEED_50MHz)
-#else
-#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_1|GPIO_SPEED_50MHz)
-#endif
+#define GPIO_SPI2_MOSI	(GPIO_SPI2_MOSI_3|GPIO_SPEED_50MHz)
+#define GPIO_SPI2_SCK	(GPIO_SPI2_SCK_4|GPIO_SPEED_50MHz)
 
 #ifdef CONFIG_STM32_SPI_DMA
 /*
@@ -276,6 +271,10 @@
  */
 # define DMACHAN_SPI1_RX DMAMAP_SPI1_RX_1
 # define DMACHAN_SPI1_TX DMAMAP_SPI1_TX_1
+
+#define DMACHAN_SPI3_RX DMAMAP_SPI3_RX_1
+#define DMACHAN_SPI3_TX DMAMAP_SPI3_TX_2
+
 #endif
 
 /************************************************************************************

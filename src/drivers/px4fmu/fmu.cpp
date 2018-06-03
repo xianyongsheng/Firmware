@@ -323,7 +323,7 @@ const PX4FMU::GPIOConfig PX4FMU::_gpio_tab[] = {
 	{GPIO_GPIO5_INPUT,       GPIO_GPIO5_OUTPUT,       0},
 
 	{0,                      GPIO_VDD_3V3_SENSORS_EN, 0},
-	{GPIO_VDD_BRICK_VALID,   0,                       0},
+    {0,   0,                       0},
 #endif
 #if defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)
 	{GPIO_GPIO0_INPUT,       GPIO_GPIO0_OUTPUT,       0},
@@ -2497,6 +2497,32 @@ PX4FMU::sensor_reset(int ms)
 	// stm32_configgpio(GPIO_EXTI_MPU_DRDY);
 
 #endif
+#ifdef CONFIG_STM32_SPI3
+    stm32_configgpio(GPIO_SPI_CS_GYRO);
+    stm32_configgpio(GPIO_SPI_CS_ACCEL_MAG);
+    stm32_configgpio(GPIO_SPI_CS_BARO);
+    stm32_configgpio(GPIO_SPI_CS_MPU);
+
+    /* De-activate all peripherals,
+     * required for some peripheral
+     * state machines
+     */
+    stm32_gpiowrite(GPIO_SPI_CS_GYRO, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_ACCEL_MAG, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_BARO, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MPU, 1);
+
+    stm32_configgpio(GPIO_SPI1_SCK);
+    stm32_configgpio(GPIO_SPI1_MISO);
+    stm32_configgpio(GPIO_SPI1_MOSI);
+
+    // // XXX bring up the EXTI pins again
+    // stm32_configgpio(GPIO_GYRO_DRDY);
+    // stm32_configgpio(GPIO_MAG_DRDY);
+    // stm32_configgpio(GPIO_ACCEL_DRDY);
+    // stm32_configgpio(GPIO_EXTI_MPU_DRDY);
+
+#endif
 #endif
 #if defined(CONFIG_ARCH_BOARD_PX4FMU_V4)
 
@@ -2505,31 +2531,31 @@ PX4FMU::sensor_reset(int ms)
 	}
 
 	/* disable SPI bus */
-	stm32_configgpio(GPIO_SPI_CS_OFF_MPU9250);
+    stm32_configgpio(GPIO_SPI_CS_OFF_MPU6000);
 	stm32_configgpio(GPIO_SPI_CS_OFF_HMC5983);
 	stm32_configgpio(GPIO_SPI_CS_OFF_MS5611);
-	stm32_configgpio(GPIO_SPI_CS_OFF_ICM_20608_G);
+//	stm32_configgpio(GPIO_SPI_CS_OFF_ICM_20608_G);
 
-	stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU9250, 0);
+    stm32_gpiowrite(GPIO_SPI_CS_OFF_MPU6000, 0);
 	stm32_gpiowrite(GPIO_SPI_CS_OFF_HMC5983, 0);
 	stm32_gpiowrite(GPIO_SPI_CS_OFF_MS5611, 0);
-	stm32_gpiowrite(GPIO_SPI_CS_OFF_ICM_20608_G, 0);
+//	stm32_gpiowrite(GPIO_SPI_CS_OFF_ICM_20608_G, 0);
 
-	stm32_configgpio(GPIO_SPI1_SCK_OFF);
-	stm32_configgpio(GPIO_SPI1_MISO_OFF);
-	stm32_configgpio(GPIO_SPI1_MOSI_OFF);
+    stm32_configgpio(GPIO_SPI3_SCK_OFF);
+    stm32_configgpio(GPIO_SPI3_MISO_OFF);
+    stm32_configgpio(GPIO_SPI3_MOSI_OFF);
 
-	stm32_gpiowrite(GPIO_SPI1_SCK_OFF, 0);
-	stm32_gpiowrite(GPIO_SPI1_MISO_OFF, 0);
-	stm32_gpiowrite(GPIO_SPI1_MOSI_OFF, 0);
+    stm32_gpiowrite(GPIO_SPI3_SCK_OFF, 0);
+    stm32_gpiowrite(GPIO_SPI3_MISO_OFF, 0);
+    stm32_gpiowrite(GPIO_SPI3_MOSI_OFF, 0);
 
-	stm32_configgpio(GPIO_DRDY_OFF_MPU9250);
+    stm32_configgpio(GPIO_DRDY_OFF_MPU6000);
 	stm32_configgpio(GPIO_DRDY_OFF_HMC5983);
-	stm32_configgpio(GPIO_DRDY_OFF_ICM_20608_G);
+//	stm32_configgpio(GPIO_DRDY_OFF_ICM_20608_G);
 
-	stm32_gpiowrite(GPIO_DRDY_OFF_MPU9250, 0);
+    stm32_gpiowrite(GPIO_DRDY_OFF_MPU6000, 0);
 	stm32_gpiowrite(GPIO_DRDY_OFF_HMC5983, 0);
-	stm32_gpiowrite(GPIO_DRDY_OFF_ICM_20608_G, 0);
+//	stm32_gpiowrite(GPIO_DRDY_OFF_ICM_20608_G, 0);
 
 	/* set the sensor rail off */
 	stm32_configgpio(GPIO_VDD_3V3_SENSORS_EN);
@@ -2549,19 +2575,19 @@ PX4FMU::sensor_reset(int ms)
 
 	/* reconfigure the SPI pins */
 #ifdef CONFIG_STM32_SPI1
-	stm32_configgpio(GPIO_SPI_CS_MPU9250);
+    stm32_configgpio(GPIO_SPI_CS_MPU6000);
 	stm32_configgpio(GPIO_SPI_CS_HMC5983);
 	stm32_configgpio(GPIO_SPI_CS_MS5611);
-	stm32_configgpio(GPIO_SPI_CS_ICM_20608_G);
+//	stm32_configgpio(GPIO_SPI_CS_ICM_20608_G);
 
 	/* De-activate all peripherals,
 	 * required for some peripheral
 	 * state machines
 	 */
-	stm32_gpiowrite(GPIO_SPI_CS_MPU9250, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MPU6000, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_HMC5983, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_MS5611, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_ICM_20608_G, 1);
+//	stm32_gpiowrite(GPIO_SPI_CS_ICM_20608_G, 1);
 
 	stm32_configgpio(GPIO_SPI1_SCK);
 	stm32_configgpio(GPIO_SPI1_MISO);
@@ -2572,6 +2598,32 @@ PX4FMU::sensor_reset(int ms)
 	// stm32_configgpio(GPIO_MAG_DRDY);
 	// stm32_configgpio(GPIO_ACCEL_DRDY);
 	// stm32_configgpio(GPIO_EXTI_MPU_DRDY);
+
+#endif
+#ifdef CONFIG_STM32_SPI3
+    stm32_configgpio(GPIO_SPI_CS_MPU6000);
+    stm32_configgpio(GPIO_SPI_CS_HMC5983);
+    stm32_configgpio(GPIO_SPI_CS_MS5611);
+//	stm32_configgpio(GPIO_SPI_CS_ICM_20608_G);
+
+    /* De-activate all peripherals,
+     * required for some peripheral
+     * state machines
+     */
+    stm32_gpiowrite(GPIO_SPI_CS_MPU6000, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_HMC5983, 1);
+    stm32_gpiowrite(GPIO_SPI_CS_MS5611, 1);
+//	stm32_gpiowrite(GPIO_SPI_CS_ICM_20608_G, 1);
+
+    stm32_configgpio(GPIO_SPI3_SCK);
+    stm32_configgpio(GPIO_SPI3_MISO);
+    stm32_configgpio(GPIO_SPI3_MOSI);
+
+    // // XXX bring up the EXTI pins again
+    // stm32_configgpio(GPIO_GYRO_DRDY);
+    // stm32_configgpio(GPIO_MAG_DRDY);
+    // stm32_configgpio(GPIO_ACCEL_DRDY);
+    // stm32_configgpio(GPIO_EXTI_MPU_DRDY);
 
 #endif
 #endif
@@ -2760,13 +2812,13 @@ PX4FMU::peripheral_reset(int ms)
 	}
 
 	/* set the peripheral rails off */
-	stm32_configgpio(GPIO_PERIPH_3V3_EN);
+//	stm32_configgpio(GPIO_PERIPH_3V3_EN);
 
-	stm32_gpiowrite(GPIO_PERIPH_3V3_EN, 0);
+//	stm32_gpiowrite(GPIO_PERIPH_3V3_EN, 0);
 
-	bool last = stm32_gpioread(GPIO_SPEKTRUM_PWR_EN);
+//	bool last = stm32_gpioread(GPIO_SPEKTRUM_PWR_EN);
 	/* Keep Spektum on to discharge rail*/
-	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, 1);
+//	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, 1);
 
 	/* wait for the peripheral rail to reach GND */
 	usleep(ms * 1000);
@@ -2775,8 +2827,8 @@ PX4FMU::peripheral_reset(int ms)
 	/* re-enable power */
 
 	/* switch the peripheral rail back on */
-	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, last);
-	stm32_gpiowrite(GPIO_PERIPH_3V3_EN, 1);
+//	stm32_gpiowrite(GPIO_SPEKTRUM_PWR_EN, last);
+//	stm32_gpiowrite(GPIO_PERIPH_3V3_EN, 1);
 #endif
 #if defined(CONFIG_ARCH_BOARD_MINDPX_V2)
 

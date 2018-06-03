@@ -373,10 +373,10 @@ ADC::update_system_power(void)
 
 	// these are not ADC related, but it is convenient to
 	// publish these to the same topic
-	system_power.usb_connected = stm32_gpioread(GPIO_OTGFS_VBUS);
+    system_power.usb_connected = 1;//stm32_gpioread(GPIO_OTGFS_VBUS);
 
 	// note that the valid pins are active High
-	system_power.brick_valid   = stm32_gpioread(GPIO_VDD_BRICK_VALID);
+    system_power.brick_valid   = 1;//stm32_gpioread(GPIO_VDD_BRICK_VALID);
 	system_power.servo_valid   = 1;
 
 	// OC pins are not supported

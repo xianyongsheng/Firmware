@@ -205,7 +205,7 @@ stm32_boardinitialize(void)
  *
  ****************************************************************************/
 
-static struct spi_dev_s *spi1;
+static struct spi_dev_s *spi3;
 static struct spi_dev_s *spi2;
 static struct sdio_dev_s *sdio;
 
@@ -221,16 +221,16 @@ __EXPORT int nsh_archinitialize(void)
 	stm32_configgpio(GPIO_ADC1_IN11);	/* RSSI analog in */
 
 	/* configure power supply control/sense pins */
-	stm32_configgpio(GPIO_PERIPH_3V3_EN);
-	stm32_configgpio(GPIO_VDD_BRICK_VALID);
+    stm32_configgpio(GPIO_SBUS_INV);
+/*	stm32_configgpio(GPIO_PERIPH_3V3_EN);
+    stm32_configgpio(GPIO_VDD_BRICK_VALID);
 
-	stm32_configgpio(GPIO_SBUS_INV);
 	stm32_configgpio(GPIO_8266_GPIO0);
 	stm32_configgpio(GPIO_SPEKTRUM_PWR_EN);
 	stm32_configgpio(GPIO_8266_PD);
 	stm32_configgpio(GPIO_8266_RST);
 	stm32_configgpio(GPIO_BTN_SAFETY);
-
+*/
 #ifdef GPIO_RC_OUT
 	stm32_configgpio(GPIO_RC_OUT);      /* Serial RC output pin */
 	stm32_gpiowrite(GPIO_RC_OUT, 1);    /* set it high to pull RC input up */
@@ -243,6 +243,8 @@ __EXPORT int nsh_archinitialize(void)
 	stm32_configgpio(GPIO_GPIO3_OUTPUT);
 	stm32_configgpio(GPIO_GPIO4_OUTPUT);
 	stm32_configgpio(GPIO_GPIO5_OUTPUT);
+    stm32_configgpio(GPIO_GPIO6_OUTPUT);
+    stm32_configgpio(GPIO_GPIO7_OUTPUT);
 
 	/* configure the high-resolution time/callout interface */
 	hrt_init();
@@ -280,22 +282,23 @@ __EXPORT int nsh_archinitialize(void)
 
 	/* Configure SPI-based devices */
 
-	spi1 = up_spiinitialize(1);
+    spi3 = up_spiinitialize(3);
 
-	if (!spi1) {
+    if (!spi3) {
 		message("[boot] FAILED to initialize SPI port 1\n");
 		up_ledon(LED_RED);
 		return -ENODEV;
 	}
 
-	/* Default SPI1 to 1MHz and de-assert the known chip selects. */
-	SPI_SETFREQUENCY(spi1, 10000000);
-	SPI_SETBITS(spi1, 8);
-	SPI_SETMODE(spi1, SPIDEV_MODE3);
-	SPI_SELECT(spi1, PX4_SPIDEV_GYRO, false);
-	SPI_SELECT(spi1, PX4_SPIDEV_HMC, false);
-	SPI_SELECT(spi1, PX4_SPIDEV_MPU, false);
-	up_udelay(20);
+    /* Default SPI3 to 1MHz and de-assert the known chip selects. */
+    SPI_SETFREQUENCY(spi3, 10000000);
+    SPI_SETBITS(spi3, 8);
+    SPI_SETMODE(spi3, SPIDEV_MODE3);
+    SPI_SELECT(spi3, PX4_SPIDEV_GYRO, false);
+    SPI_SELECT(spi3, PX4_SPIDEV_HMC, false);
+    SPI_SELECT(spi3, PX4_SPIDEV_MPU, false);
+    SPI_SELECT(spi3, PX4_SPIDEV_BARO, false);
+    up_udelay(20);
 
 	/* Get the SPI port for the FRAM */
 
@@ -316,7 +319,6 @@ __EXPORT int nsh_archinitialize(void)
 	SPI_SETBITS(spi2, 8);
 	SPI_SETMODE(spi2, SPIDEV_MODE3);
 	SPI_SELECT(spi2, SPIDEV_FLASH, false);
-	SPI_SELECT(spi2, PX4_SPIDEV_BARO, false);
 
 #ifdef CONFIG_MMCSD
 	/* First, get an instance of the SDIO interface */
