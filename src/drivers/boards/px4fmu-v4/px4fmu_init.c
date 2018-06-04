@@ -291,7 +291,7 @@ __EXPORT int nsh_archinitialize(void)
 	}
 
     /* Default SPI3 to 1MHz and de-assert the known chip selects. */
-    SPI_SETFREQUENCY(spi3, 10000000);
+    SPI_SETFREQUENCY(spi3, 20000000);
     SPI_SETBITS(spi3, 8);
     SPI_SETMODE(spi3, SPIDEV_MODE3);
     SPI_SELECT(spi3, PX4_SPIDEV_GYRO, false);
@@ -315,7 +315,7 @@ __EXPORT int nsh_archinitialize(void)
 	 */
 
 	// XXX start with 10.4 MHz and go up to 20 once validated
-	SPI_SETFREQUENCY(spi2, 20 * 1000 * 1000);
+    SPI_SETFREQUENCY(spi2, 20 * 1000 * 1000);
 	SPI_SETBITS(spi2, 8);
 	SPI_SETMODE(spi2, SPIDEV_MODE3);
 	SPI_SELECT(spi2, SPIDEV_FLASH, false);
