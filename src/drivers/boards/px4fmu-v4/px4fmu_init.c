@@ -215,10 +215,10 @@ __EXPORT int nsh_archinitialize(void)
 {
 
 	/* configure ADC pins */
-	stm32_configgpio(GPIO_ADC1_IN2);	/* BATT_VOLTAGE_SENS */
-	stm32_configgpio(GPIO_ADC1_IN3);	/* BATT_CURRENT_SENS */
-	stm32_configgpio(GPIO_ADC1_IN4);	/* VDD_5V_SENS */
-	stm32_configgpio(GPIO_ADC1_IN11);	/* RSSI analog in */
+    //stm32_configgpio(GPIO_ADC1_IN2);	/* BATT_VOLTAGE_SENS */
+    //stm32_configgpio(GPIO_ADC1_IN3);	/* BATT_CURRENT_SENS */
+    //stm32_configgpio(GPIO_ADC1_IN4);	/* VDD_5V_SENS */
+    //stm32_configgpio(GPIO_ADC1_IN11);	/* RSSI analog in */
 
 	/* configure power supply control/sense pins */
     stm32_configgpio(GPIO_SBUS_INV);

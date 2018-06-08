@@ -321,6 +321,8 @@ const PX4FMU::GPIOConfig PX4FMU::_gpio_tab[] = {
 	{GPIO_GPIO3_INPUT,       GPIO_GPIO3_OUTPUT,       0},
 	{GPIO_GPIO4_INPUT,       GPIO_GPIO4_OUTPUT,       0},
 	{GPIO_GPIO5_INPUT,       GPIO_GPIO5_OUTPUT,       0},
+    {GPIO_GPIO6_INPUT,       GPIO_GPIO6_OUTPUT,       0},
+    {GPIO_GPIO7_INPUT,       GPIO_GPIO7_OUTPUT,       0},
 
 	{0,                      GPIO_VDD_3V3_SENSORS_EN, 0},
     {0,   0,                       0},
