@@ -406,8 +406,8 @@ PX4FMU	*g_fmu;
 PX4FMU::PX4FMU() :
 	CDev("fmu", PX4FMU_DEVICE_PATH),
 	_mode(MODE_NONE),
-	_pwm_default_rate(50),
-	_pwm_alt_rate(50),
+    _pwm_default_rate(400),
+    _pwm_alt_rate(400),
 	_pwm_alt_rate_channels(0),
 	_pwm_clock(1),
 	_current_update_rate(0),
@@ -647,14 +647,14 @@ PX4FMU::set_mode(Mode mode)
 	case MODE_4PWM: // v1 or v2 multi-port as 4 PWM outs
 		DEVICE_DEBUG("MODE_4PWM");
 
-        _pwm_mask = 0x55;//0xf
+        _pwm_mask = 0x33;
 		_pwm_initialized = false;
 		break;
 
 	case MODE_6PWM: // v2 PWMs as 6 PWM outs
 		DEVICE_DEBUG("MODE_6PWM");
 
-		_pwm_mask = 0x3f;
+        _pwm_mask = 0xEE;
 		_pwm_initialized = false;
 		break;
 
@@ -711,7 +711,7 @@ PX4FMU::set_mode(Mode mode)
 int
 PX4FMU::set_pwm_rate(uint32_t rate_map, unsigned default_rate, unsigned alt_rate)
 {
-	DEVICE_DEBUG("set_pwm_rate 0x%02x %u %u", rate_map, default_rate, alt_rate);
+    DEVICE_DEBUG("set_pwm_rate 0x%02x %u %u", rate_map, default_rate, alt_rate);
 
 	for (unsigned pass = 0; pass < 2; pass++) {
 		for (unsigned group = 0; group < _max_actuators; group++) {
@@ -735,21 +735,21 @@ PX4FMU::set_pwm_rate(uint32_t rate_map, unsigned default_rate, unsigned alt_rate
 				}
 
 			} else {
-				// set it - errors here are unexpected
+                // set it - errors here are unexpected
 				if (alt != 0) {
-					if (up_pwm_servo_set_rate_group_update(group, alt_rate) != OK) {
+                    if (up_pwm_servo_set_rate_group_update(group, alt_rate) != OK) {
 						warn("rate group set alt failed");
 						return -EINVAL;
-					}
+                    }
 
 				} else {
 					if (up_pwm_servo_set_rate_group_update(group, default_rate) != OK) {
 						warn("rate group set default failed");
 						return -EINVAL;
-					}
+                    }
 				}
 			}
-		}
+        }
 	}
 
 	_pwm_alt_rate_channels = rate_map;
@@ -1710,11 +1710,11 @@ PX4FMU::pwm_ioctl(file *filp, int cmd, unsigned long arg)
 		*(uint32_t *)arg = _pwm_default_rate;
 		break;
 
-	case PWM_SERVO_SET_DEFAULT_UPDATE_RATE:
+    case PWM_SERVO_SET_DEFAULT_UPDATE_RATE:
 		ret = set_pwm_rate(_pwm_alt_rate_channels, (uint32_t)arg, _pwm_alt_rate);
 		break;
         
-	case PWM_SERVO_SET_UPDATE_RATE:
+    case PWM_SERVO_SET_UPDATE_RATE:
 		ret = set_pwm_rate(_pwm_alt_rate_channels, _pwm_default_rate, arg);
 		break;
 
@@ -1726,7 +1726,7 @@ PX4FMU::pwm_ioctl(file *filp, int cmd, unsigned long arg)
 		*(uint32_t *)arg = _pwm_alt_rate;
 		break;
 
-	case PWM_SERVO_SET_SELECT_UPDATE_RATE:
+    case PWM_SERVO_SET_SELECT_UPDATE_RATE:
 		ret = set_pwm_rate(arg, _pwm_default_rate, _pwm_alt_rate);
 		break;
 
